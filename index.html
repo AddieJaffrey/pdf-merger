@@ -7,7 +7,7 @@
   <meta name="description" content="Free online PDF merger with page-level thumbnails — drag & drop pages, reorder, delete, and merge. No upload to server; runs in your browser.">
   <link rel="canonical" href="https://yourusername.github.io/pdf-merger/">
 
-  <!-- Adsense verification placeholder: Replace the content value with your actual verification token -->
+  <!-- Adsense verification placeholder -->
   <meta name="google-site-verification" content="REPLACE_WITH_ADSENSE_VERIFICATION_TOKEN">
 
   <!-- Open Graph / Social -->
@@ -17,7 +17,7 @@
   <meta property="og:url" content="https://yourusername.github.io/pdf-merger/">
   <meta property="og:image" content="https://yourusername.github.io/pdf-merger/og-image.png">
 
-  <!-- Structured Data (WebApplication) -->
+  <!-- Structured Data -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -32,14 +32,18 @@
   }
   </script>
 
-  <!-- Libraries (CDN) -->
+  <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
   <style>
     :root{
-      --bg:#f6f8fb; --card:#ffffff; --muted:#6b7280; --accent:#0f62fe; --shadow:0 6px 18px rgba(15,22,48,0.08);
+      --bg:#f0f6f2;
+      --card:#ffffff;
+      --muted:#4b645b;
+      --accent:#28a745;
+      --shadow:0 6px 18px rgba(40,167,69,0.15);
     }
     *{box-sizing:border-box}
     body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin:0; background:var(--bg); color:#0b1220}
@@ -50,18 +54,18 @@
     .container{max-width:1100px;margin:18px auto;padding:18px}
     .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
     .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;box-shadow:var(--shadow);font-weight:600}
-    .btn.secondary{background:#fff;color:var(--accent);border:1px solid #e6e9ef}
+    .btn.secondary{background:#fff;color:var(--accent);border:1px solid #d4e9dc}
     .file-input{display:inline-block}
 
     .workspace{display:grid;grid-template-columns:1fr 380px;gap:18px}
     .panel{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
     .preview-grid{display:flex;flex-wrap:wrap;gap:10px;max-height:68vh;overflow:auto;padding:6px}
-    .page-tile{width:130px;background:#fbfdff;border-radius:8px;padding:8px;display:flex;flex-direction:column;align-items:center;cursor:grab}
+    .page-tile{width:130px;background:#f7fdf6;border-radius:8px;padding:8px;display:flex;flex-direction:column;align-items:center;cursor:grab}
     .page-tile canvas{width:100%;height:auto;border-radius:6px;box-shadow:0 3px 8px rgba(10,20,40,0.06)}
     .page-meta{font-size:12px;color:var(--muted);margin-top:6px;text-align:center}
 
     .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-    .small{padding:8px 10px;border-radius:8px;background:#fff;border:1px solid #eef2f7}
+    .small{padding:8px 10px;border-radius:8px;background:#fff;border:1px solid #e6f1ea}
 
     .right-col{display:flex;flex-direction:column;gap:12px}
     .right-col h3{margin:0}
@@ -106,11 +110,12 @@
 
       <aside class="right-col">
         <div class="panel">
-          <h3>Info & SEO</h3>
+          <h3>How This Tool Works</h3>
           <div class="list">
-            <div class="hint">This tool processes files locally inside user's browser. Files are not uploaded to any server.</div>
-            <div class="hint">For SEO and AdSense, host this on GitHub Pages and embed in Blogger with an iframe. Replace the verification meta token before publishing.</div>
-            <div class="hint">Large PDFs may take time to render. Use modern Chrome/Edge/Firefox.</div>
+            <div class="hint">This tool processes files locally inside the user's browser. Files are not uploaded to any server.</div>
+            <div class="hint">To reorder pages, drag page thumbnails to the desired position. Deleted pages are excluded from the merged PDF.</div>
+            <div class="hint">Large PDFs may take time to render. Use a modern Chrome, Edge, or Firefox browser for best results.</div>
+            <div class="hint">For embedding in Blogger: host the tool on GitHub Pages and use an iframe to integrate it seamlessly.</div>
           </div>
         </div>
 
@@ -217,7 +222,7 @@
     pageItems.forEach((p, idx)=>{
       const node = document.createElement('div');
       node.style.display='flex'; node.style.justifyContent='space-between'; node.style.alignItems='center'; node.style.padding='6px 8px';
-      node.style.borderBottom='1px solid #f1f3f6';
+      node.style.borderBottom='1px solid #e2f0e7';
       node.innerHTML = `<div style="font-size:13px;color:#0b1220">${idx+1}. ${escapeHtml(p.fileName)} (p.${p.pageIndex+1})</div><div style="font-size:12px;color:var(--muted)">${p.selected? 'Included' : 'Removed'}</div>`;
       orderList.appendChild(node);
     });
