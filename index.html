@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Advanced PDF Merger — Reorder Pages, Merge, Preview</title>
+  <meta name="description" content="Free online PDF merger with page-level thumbnails — drag & drop pages, reorder, delete, and merge. No upload to server; runs in your browser.">
+  <link rel="canonical" href="https://yourusername.github.io/pdf-merger/">
+
+  <!-- Adsense verification placeholder: Replace the content value with your actual verification token -->
+  <meta name="google-site-verification" content="REPLACE_WITH_ADSENSE_VERIFICATION_TOKEN">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:title" content="Advanced PDF Merger — Reorder Pages, Merge, Preview">
+  <meta property="og:description" content="Free online PDF merger with page-level thumbnails — drag & drop pages, reorder, delete, and merge. No upload to server; runs in your browser.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yourusername.github.io/pdf-merger/">
+  <meta property="og:image" content="https://yourusername.github.io/pdf-merger/og-image.png">
+
+  <!-- Structured Data (WebApplication) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Advanced PDF Merger",
+    "url": "https://yourusername.github.io/pdf-merger/",
+    "description": "Reorder and merge PDF pages in the browser. No server. Drag & drop thumbnails, delete pages, and download merged PDF.",
+    "applicationCategory": "Utilities",
+    "operatingSystem": "All",
+    "browserRequirements": "JavaScript enabled, modern browser",
+    "offers": {"@type": "Offer","price": "0","priceCurrency": "USD"}
+  }
+  </script>
+
+  <!-- Libraries (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f6f8fb; --card:#ffffff; --muted:#6b7280; --accent:#0f62fe; --shadow:0 6px 18px rgba(15,22,48,0.08);
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin:0; background:var(--bg); color:#0b1220}
+    header{padding:28px 18px; text-align:center}
+    header h1{margin:0;font-size:22px}
+    header p{margin:6px 0 0;color:var(--muted)}
+
+    .container{max-width:1100px;margin:18px auto;padding:18px}
+    .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
+    .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;box-shadow:var(--shadow);font-weight:600}
+    .btn.secondary{background:#fff;color:var(--accent);border:1px solid #e6e9ef}
+    .file-input{display:inline-block}
+
+    .workspace{display:grid;grid-template-columns:1fr 380px;gap:18px}
+    .panel{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+    .preview-grid{display:flex;flex-wrap:wrap;gap:10px;max-height:68vh;overflow:auto;padding:6px}
+    .page-tile{width:130px;background:#fbfdff;border-radius:8px;padding:8px;display:flex;flex-direction:column;align-items:center;cursor:grab}
+    .page-tile canvas{width:100%;height:auto;border-radius:6px;box-shadow:0 3px 8px rgba(10,20,40,0.06)}
+    .page-meta{font-size:12px;color:var(--muted);margin-top:6px;text-align:center}
+
+    .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .small{padding:8px 10px;border-radius:8px;background:#fff;border:1px solid #eef2f7}
+
+    .right-col{display:flex;flex-direction:column;gap:12px}
+    .right-col h3{margin:0}
+    .list{display:flex;flex-direction:column;gap:8px;max-height:56vh;overflow:auto;padding:6px}
+    .list .hint{color:var(--muted);font-size:13px}
+
+    footer{margin-top:18px;padding:12px;text-align:center;color:var(--muted);font-size:13px}
+
+    @media (max-width:980px){.workspace{grid-template-columns:1fr}} 
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Advanced PDF Merger</h1>
+    <p>Drag & drop pages, preview thumbnails, remove pages and merge — everything runs in the browser. Free to use.</p>
+  </header>
+
+  <main class="container">
+    <div class="toolbar">
+      <label class="btn file-input" id="uploadLabel" tabindex="0" role="button" aria-label="Upload PDFs">
+        Upload PDFs
+        <input id="fileInput" type="file" accept="application/pdf" multiple style="display:none">
+      </label>
+      <button class="btn secondary" id="clearAll">Clear All</button>
+      <div style="flex:1"></div>
+      <button class="btn" id="mergeBtn">Merge & Download</button>
+    </div>
+
+    <div class="workspace">
+      <section class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h3 style="margin:0">Pages</h3>
+          <div class="controls">
+            <button class="small" id="selectAll">Select All</button>
+            <button class="small" id="deselectAll">Deselect All</button>
+            <button class="small" id="removeSelected">Remove Selected</button>
+          </div>
+        </div>
+
+        <div id="previewGrid" class="preview-grid" aria-live="polite"></div>
+      </section>
+
+      <aside class="right-col">
+        <div class="panel">
+          <h3>Info & SEO</h3>
+          <div class="list">
+            <div class="hint">This tool processes files locally inside user's browser. Files are not uploaded to any server.</div>
+            <div class="hint">For SEO and AdSense, host this on GitHub Pages and embed in Blogger with an iframe. Replace the verification meta token before publishing.</div>
+            <div class="hint">Large PDFs may take time to render. Use modern Chrome/Edge/Firefox.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Page Order</h3>
+          <div class="list" id="orderList">No pages yet — upload PDFs to get started.</div>
+        </div>
+
+        <div class="panel">
+          <h3>Tips</h3>
+          <div class="list">
+            <div class="hint">To reorder pages precisely: drag page thumbnails to the exact spot and watch the order list update.</div>
+            <div class="hint">For best UX on mobile, limit uploads to smaller files.</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      Built to run fully client-side. For commercial use follow Google AdSense policies.
+    </footer>
+  </main>
+
+  <script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+  const fileInput = document.getElementById('fileInput');
+  const previewGrid = document.getElementById('previewGrid');
+  const orderList = document.getElementById('orderList');
+  const mergeBtn = document.getElementById('mergeBtn');
+  const clearAllBtn = document.getElementById('clearAll');
+  const selectAllBtn = document.getElementById('selectAll');
+  const deselectAllBtn = document.getElementById('deselectAll');
+  const removeSelectedBtn = document.getElementById('removeSelected');
+  const uploadLabel = document.getElementById('uploadLabel');
+
+  let pageItems = [];
+
+  uploadLabel.addEventListener('click', ()=> fileInput.click());
+  uploadLabel.addEventListener('keydown', (e)=> { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  fileInput.addEventListener('click', ()=> fileInput.value = null);
+
+  fileInput.addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files);
+    if(files.length === 0) return;
+    await loadFiles(files);
+  });
+
+  async function loadFiles(files){
+    previewGrid.innerHTML = '';
+    orderList.innerHTML = '';
+    pageItems = [];
+
+    for(let fIndex=0; fIndex<files.length; fIndex++){
+      const file = files[fIndex];
+      const url = URL.createObjectURL(file);
+      try{
+        const pdf = await pdfjsLib.getDocument(url).promise;
+        for(let i=1;i<=pdf.numPages;i++){
+          const page = await pdf.getPage(i);
+          const scale = Math.max(0.18, Math.min(0.36, 980 / (page.getViewport({scale:1}).width)));
+          const viewport = page.getViewport({scale});
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = Math.floor(viewport.width);
+          canvas.height = Math.floor(viewport.height);
+          await page.render({canvasContext:ctx,viewport}).promise;
+
+          const id = 'p_' + pageItems.length;
+          const tile = document.createElement('div'); tile.className='page-tile'; tile.setAttribute('draggable','true'); tile.id = id;
+          tile.appendChild(canvas);
+
+          const meta = document.createElement('div'); meta.className='page-meta'; meta.textContent = file.name + ' – p.' + i;
+          tile.appendChild(meta);
+
+          const checkbox = document.createElement('input'); checkbox.type='checkbox'; checkbox.style.marginTop='6px';
+          checkbox.checked = true;
+          checkbox.addEventListener('change', ()=>{ const item = pageItems.find(x=>x.id===id); if(item) item.selected = checkbox.checked; updateOrderList(); });
+          tile.appendChild(checkbox);
+
+          previewGrid.appendChild(tile);
+
+          pageItems.push({id,fileName:file.name,file,fileIndex:fIndex,pageIndex:i-1,canvasThumb:canvas,selected:true});
+        }
+      }catch(err){ console.error('Error reading PDF:',err); }
+    }
+
+    if(pageItems.length===0){ orderList.textContent='No pages available'; }
+    else updateOrderList();
+
+    Sortable.create(previewGrid,{
+      animation:150,
+      onEnd: (evt) => {
+        const moved = pageItems.splice(evt.oldIndex,1)[0];
+        pageItems.splice(evt.newIndex,0,moved);
+        updateOrderList();
+      }
+    });
+  }
+
+  function updateOrderList(){
+    orderList.innerHTML = '';
+    if(pageItems.length===0){ orderList.textContent='No pages uploaded.'; return; }
+    pageItems.forEach((p, idx)=>{
+      const node = document.createElement('div');
+      node.style.display='flex'; node.style.justifyContent='space-between'; node.style.alignItems='center'; node.style.padding='6px 8px';
+      node.style.borderBottom='1px solid #f1f3f6';
+      node.innerHTML = `<div style="font-size:13px;color:#0b1220">${idx+1}. ${escapeHtml(p.fileName)} (p.${p.pageIndex+1})</div><div style="font-size:12px;color:var(--muted)">${p.selected? 'Included' : 'Removed'}</div>`;
+      orderList.appendChild(node);
+    });
+  }
+
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]; }); }
+
+  selectAllBtn.addEventListener('click', ()=>{ pageItems.forEach(p=>p.selected=true); const boxes = document.querySelectorAll('.page-tile input[type="checkbox"]'); boxes.forEach(b=>b.checked=true); updateOrderList(); });
+  deselectAllBtn.addEventListener('click', ()=>{ pageItems.forEach(p=>p.selected=false); const boxes = document.querySelectorAll('.page-tile input[type="checkbox"]'); boxes.forEach(b=>b.checked=false); updateOrderList(); });
+  removeSelectedBtn.addEventListener('click', ()=>{
+    pageItems = pageItems.filter(p=>p.selected);
+    previewGrid.innerHTML = '';
+    pageItems.forEach((p, idx) => {
+      const tile = document.createElement('div'); tile.className='page-tile'; tile.id = p.id;
+      const canvasClone = p.canvasThumb.cloneNode(true);
+      tile.appendChild(canvasClone);
+      const meta = document.createElement('div'); meta.className='page-meta'; meta.textContent = p.fileName + ' – p.' + (p.pageIndex+1);
+      tile.appendChild(meta);
+      const checkbox = document.createElement('input'); checkbox.type='checkbox'; checkbox.style.marginTop='6px'; checkbox.checked = true;
+      checkbox.addEventListener('change', ()=>{ p.selected = checkbox.checked; updateOrderList(); });
+      tile.appendChild(checkbox);
+      previewGrid.appendChild(tile);
+      p.canvasThumb = canvasClone;
+    });
+    updateOrderList();
+  });
+
+  clearAllBtn.addEventListener('click', ()=>{ if(!confirm('Clear all pages?')) return; pageItems=[]; previewGrid.innerHTML=''; orderList.innerHTML='No pages yet — upload PDFs to get started.'; });
+
+  mergeBtn.addEventListener('click', async ()=>{
+    if(pageItems.length===0){ alert('No pages to merge. Upload PDFs first.'); return; }
+    mergeBtn.disabled = true; mergeBtn.textContent = 'Merging...';
+
+    const mergedPdf = await PDFLib.PDFDocument.create();
+    const docCache = {};
+
+    for(const p of pageItems){
+      if(!p.selected) continue;
+      if(!docCache[p.fileIndex]){
+        const buffer = await p.file.arrayBuffer();
+        docCache[p.fileIndex] = await PDFLib.PDFDocument.load(buffer);
+      }
+      const src = docCache[p.fileIndex];
+      const [copied] = await mergedPdf.copyPages(src, [p.pageIndex]);
+      mergedPdf.addPage(copied);
+    }
+
+    const bytes = await mergedPdf.save();
+    const blob = new Blob([bytes], {type:'application/pdf'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'merged.pdf'; document.body.appendChild(a); a.click(); a.remove();
+
+    mergeBtn.disabled=false; mergeBtn.textContent='Merge & Download';
+  });
+
+  document.getElementById('uploadLabel').addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') fileInput.click(); });
+  </script>
+</body>
+</html>
